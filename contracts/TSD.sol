@@ -16,14 +16,14 @@ contract TSD is BaseToken, Ownable {
     uint256 public thousand = 1000 * decimalMultiplier;
 
     // Allocations
-    uint256 public totalSupply = 600 * million;
-    uint256 public mainTokenSupply = 96 * million;
-    uint256 public pvtSaleSupply = 144 * million;
-    uint256 public preSaleSupply = 240 * million;
-    uint256 public foundersAndAdvisorsAllocation = 48 * million;
-    uint256 public projectImplementationServicesAllocation = 12 * million;
-    uint256 public bountyCommunityIncentivesAllocation = 42 * million;
-    uint256 public liquidityProgramAllocation = 18 * million;
+    uint256 public totalSupply = 250 * million;
+    uint256 public mainTokenSupply = 62.5 * million;
+    uint256 public pvtSaleSupply = 100 * million;
+    uint256 public preSaleSupply = 37.5 * million;
+    uint256 public foundersAndAdvisorsAllocation = 20 * million;
+    uint256 public projectImplementationServicesAllocation = 5 * million;
+    uint256 public bountyCommunityIncentivesAllocation = 17.5 * million;
+    uint256 public liquidityProgramAllocation = 7.5 * million;
     uint256 public totalEthRaised = 0;
 
     // distributions
@@ -48,7 +48,7 @@ contract TSD is BaseToken, Ownable {
     address public authorisedContract;
 
     // Token tradability toggle
-    bool public canTrade = false;
+    bool public canTrade = true;
 
     // initializationCall
     bool private isInitialAllocationDone = false;
@@ -94,7 +94,7 @@ contract TSD is BaseToken, Ownable {
     }
 
     function contractInitialAllocation() external onlyOwner {
-        // require the initialAllocationDone to be false, as it can only be called once 
+        // require the initialAllocationDone to be false, as it can only be called once
         require(!isInitialAllocationDone, "Initial allocation has already completed");
 
         // Transfer all of the allocations
@@ -140,7 +140,7 @@ contract TSD is BaseToken, Ownable {
         // ensure that the calling wallet is calling at/after its elasped cliffTime
         require(currentTime() >= escrowBalances[msg.sender].cliffTime, "The current wallets escrow period has yet to lapse");
         uint256 amountToWithdraw = escrowBalances[msg.sender].amount;
-        
+
         // ensure the sender has not already withdrawn
         require(escrowBalances[msg.sender].amount > 0, "This wallets escrow balance is not more than 0");
         // ensure no more than the initial supply is ever allocated
@@ -157,17 +157,13 @@ contract TSD is BaseToken, Ownable {
         balances[msg.sender] = amountToWithdraw;
         emit Transfer(0x0, msg.sender, amountToWithdraw);
     }
- 
+
     // Contract utility functions
     function currentTime() public view returns (uint256) {
         return now * 1000;
     }
 
-    // Toggles the trading ability of TSD
-    function toggleTrading() external onlyOwner {
-      canTrade = !canTrade;
-      emit TradingStatus(canTrade);
-    }
+
 
     // Ability to burn tokens but only from the private pre or main sale contracts
     function burnRemainingTokensAfterClose(address _address) external onlyOwner returns (bool) {
@@ -220,31 +216,6 @@ contract TSD is BaseToken, Ownable {
         // make transferFrom a safe method - reverting failed transfers
         require(super.transferFrom(_from, _to, _value), "could not safely transfer from authorised contract");
         return true;
-    }
-
-    // Subsequent supply functions
-    function setSubsequentContract(address _contractAddress) external onlyOwner returns (bool) {
-        subsequentContract = _contractAddress;
-        return true;
-    }
-
-    function increaseTotalSupplyAndAllocateTokens(address _newTokensWallet, uint256 _amount) external isSubsequentContract returns (bool) {
-        totalSupply = totalSupply.add(_amount);
-        balances[_newTokensWallet] = balances[_newTokensWallet].add(_amount);
-        emit IncreaseTotalSupply(_amount, _newTokensWallet);
-        return true;
-    }
-
-    function increaseEthRaisedBySubsequentSale(uint256 _amount) external isSubsequentContract {
-        totalEthRaised = totalEthRaised.add(_amount);
-        emit EthRaisedUpdated(totalEthRaised, _amount);
-    }
-
-     // modifiers
-    modifier isSubsequentContract() {
-        require(msg.sender != address(0));
-        require(msg.sender == subsequentContract, "sender is not subsequentContract");
-        _;
     }
 
     modifier isAuthorisedContract() {
