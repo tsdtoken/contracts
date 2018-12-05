@@ -125,7 +125,7 @@ The SecondaryCrowdsaleContract contains methods used in the PRE and PRIVATE cont
 
 The first of three token sales organised by Transcendence. This round offers the highest level of discount for the token. The discount is not in perspective of reduced price for a unit token but the offering of more tokens for the same price.
 
-> Total supply of 144 Million tokens will be offered and reserved in this round
+> Total supply of 62.5 Million tokens will be offered and reserved in this round
 
 > The Token follows all ERC20 principles stated in the Base Line Contract
 
@@ -167,17 +167,13 @@ The Private Token contract inherits from the `SecondaryCrowdsaleContract` automa
 
 The second of three token sales organised by Transcendence. This round offers the second highest level of discount for the token. The discount is not in perspective of reduced price for a unit token but the offering of more tokens for the same price.
 
-> Total supply of 240 Million tokens will be offered and reserved in this round
+> Total supply of 100 Million tokens will be offered and reserved in this round
 
 > The token is not ERC20 compliant as it doesn't contain a fair few of the methods needed to reach compliance.
 
 > Only people who have whitelisted themselves with their ETH wallet addresses can participate in the token sale
 
-> Tokens are sold in tranches. 4 tranches of 60M each.
-- First tranche at 20% discount ($0.5 * 0.8 = $0.40)
-- Second tranche at 16% discount ($0.5 * 0.84 = $0.42)
-- Third tranche at 12% discount ($0.5 * 0.88 = $0.44)
-- Fourth tranche at 8% discount ($0.5 * 0.92 = $0.46)
+> Token value is intrinsically 50 cents but offered at 20% discount (0.40 USD)
 
 Address  | Bool
 ------------- | -------------
@@ -232,14 +228,14 @@ This is the contract that will, in conclusion, hold **all** wallet addresses tha
 
 > End of sale date
 
-> Total supply of TSD is 550M tokens
-- 144M is reserved for the private sale
-- 240M is reserved for the pre sale
-- 96M is reserved for the main sale
-- 48M is reserved for the founders and advisors
-- 42M is reserved for the bounty and allocation incentives
-- 18M is reserved for the liquidity program
-- 12M is reserved for kapitalized
+> Total supply of TSD is 250M tokens
+- 62.5M is reserved for the private sale
+- 100M is reserved for the pre sale
+- 37.5M is reserved for the main sale
+- 20M is reserved for the founders and advisors
+- 17.5M is reserved for the bounty and allocation incentives
+- 7.5M is reserved for the liquidity program
+- 5M is reserved for project implememtation providers
 
 >Token depletion (all tokens sold out)
 
@@ -261,11 +257,7 @@ Fallback payable function is used to absorb ETH and reward senders with TSD toke
 
 Similar refund logic to the private and pre token sale contracts is implemented here.
 
-Subsequent supply functions which are own owner accessible are present in the mainsale to allow for an increase in token supply as well as assign the new tokens to a new holding wallet.
-
 No tokens purchased can be traded until the ICO is closed, in perspective to the endTime, not the depletion of tokens.
-
-Token trade can be frozen by the owner. This contract is ERC20 compliant, however the transfer and tranferFrom method have requirements, the `canTrade` boolean needs to be set to true, which is controlled by the contract owner.
 
 The TSD contract inherits from the BaseToken, giving it the core background of an ERC20 base standard contract, as well as the Ownable contract..
 
@@ -276,8 +268,6 @@ Functions available:
 > Creates a struct containing token amount and escrow period - allocates this struct to an address in the *escrowBalances* mapping used as a reference in *withdrawFromEscrow*
 - `withdrawFromEscrow✓`
 > Can only be called by an escrowed wallet, i.e foundersAndAdvisors, bountyCommunityIncentives or projectImplementationServices. Checks to see if the current time is past the escrow period of the calling wallet, it sets the escrow balance of that wallet to 0 and allocates that escrowed amount to the calling wallet.
-- `toggleTrading✓`
-> Used to toggle the ability of trading, *canTrade* a boolean value used in the *transfer* and *transferFrom* methods
 - `burnRemainingTokensAfterClose✓`
 > Burns the remaining tokens and updates the supply, a safety check is placed to ensure that its only called after the end time has concluded. This method can be called by the private, pre or main funds wallets only
 - `transfer`
@@ -288,38 +278,9 @@ Functions available:
 > Sets the crowndsale contract address or airdrop / designed to be used by any one external contract. This address is used in the modifier that guards *safeTranferFrom* which is explained next
 -`safeTransferFrom✓`
 > Implementation of the standard ERC20 *transferFrom* inherited from *BaseToken* decorated with an *isAuthorised* modifier. The concept of this function is to be used by the main *crowdsale contract* for immediate allocation of tokens, We can't use the traditional *transferFrom* methods because those are safeguarded with the *canTrade* boolean.
-- `setSubsequentContract✓`
->  Sets the subsequent contract address
-- `increaseTotalSupplyAndAllocateTokens`
->  Called by the subsequent contract, and is used to increase the total supply and allocate tokens to the new token wallet
-- `increaseEthRaisedBySubsequentSale`
-> Keeps track of the ETH raised and emits an event to reflect so
+
 - `setStartTime✓ & setEndTime✓`
 > Custom sets the start and end time
-## Subsequent Contract
-
-The uniqueness of the Transcendence project is the close tie between the utility token and assets the tokens back in the eventual platform Transcendence will create. This contract inherits from the *BaseCrowdsaleContract*
-
-The use of the subsequent contract will be to increase the supply of the TSD token and offer a additional token sale. The occurrence  of this would be in situations a new asset has entered the platform that cannot be backed by the current circulatory supply of TSD tokens.
-
-An increase in supply is thus indicative of a well performing platform.
-
-> The subsequent contract will act as a proxy to inject more tokens into the balances mapping on the main contract with new token purchasers
-
-Functions available:
-
-- `setTokenHolderAddressAndExchangeRate✓`
-> Sets the exchange rate, which is dynamic per contract round, and sets the wallet that will initially hold the tokens
-- `increaseTotalSupplyAndAllocateTokens✓`
-> Sets the new token wallet in the main contract and allocates it the designated increased supply
-- `openSubsequentSale✓`
-> The contract will by default state be shut, this function is accessible only by the owner (the person who deployed this contract in the first place) and sets the contract active
-- `closeSubsequentSale✓`
-> Closes the current active subsequent contract token sale
-- `updateTokenPrice`
-> Updates the token price
-- `buySubsequentTokens`
-> Considering we want to encourage people to buy through our dApp, we set this function to a payable modifier enabling it to receive real ETH, the tokens are calculated with the exchange rate, and the allocated to the sender in the main token sale
 
 # Distribution of tokens
 At present the logic is assumed such that tokens from private and pre sale will be held in the respective smart contracts until said release dates have not reached, which will then allow the owners of the contracts to call the distribute function, that will assign the private or pre sale token owners their equivalent TSD tokens
@@ -366,23 +327,6 @@ Testing is a critical part of the project, we need to have the contract be as de
     ✓ the owner can change the end date (39ms)
     ✓ owner cannot call #increaseTotalSupplyAndAllocateTokens (79ms)
     ✓ owner cannot call #increaseEthRaisedBySubsequentSale (70ms)
-
-  **Contract: TSDSubsequentSupply**
-  
-    ✓ can set the token wallet address and exchange rate by owner (68ms)
-    ✓ cannot set the token wallet address and exchange rate by a different address
-    ✓ can change the token price as the owner (48ms)
-    ✓ cannot change the token price if not the owner
-    ✓ creates a mapping of all whitelisted addresses (66ms)
-    ✓ can tell you if an address is whitelisted (55ms)
-    ✓ can increase the total supply in the main contract and allocate tokens to new token wallet (129ms)
-    ✓ can open the subsequent token sale when called by the owner (64ms)
-    ✓ cannot open the subsequent token sale when called by a different address (54ms)
-    ✓ can close the subsequent token sale when called by the owner (64ms)
-    ✓ cannot close the subsequent token sale when called by a different address (82ms)
-    ✓ accepts ether when sale is open (512ms)
-    ✓ does not accept ether when sale is closed (245ms)
-    ✓ sells the last remaining tokens and issues a refund for ether unspent, closes sale (788ms)
 
  **Contract: PRETSD**
  
